@@ -1,0 +1,439 @@
+{
+  "info": {
+    "name": "PromptlyBot API",
+    "description": "AI-powered business chatbot backend. All protected endpoints require a Bearer token — run the Login request first, the collection auto-saves it.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://promptlybotbackendpython-production.up.railway.app",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Root",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/",
+            "description": "Returns a welcome message."
+          }
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health",
+            "description": "Returns API health status."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/auth/signup",
+            "description": "Register a new business owner account.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"owner@example.com\",\n  \"password\": \"yourpassword123\",\n  \"phone\": \"923001234567\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "  pm.collectionVariables.set('token', res.access_token);",
+                  "  console.log('Token saved to collection variable.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Login with email + password. The token is automatically saved to the `token` collection variable for all subsequent requests.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "username", "value": "owner@example.com" },
+                { "key": "password", "value": "yourpassword123" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Business Settings",
+      "description": "All routes require a valid Bearer token (login first).",
+      "item": [
+        {
+          "name": "Save Business Settings",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service",
+            "description": "Create or update business services and chat tone. New services are appended to existing ones.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"services\": [\n    {\n      \"serviceName\": \"AI Chatbot Development\",\n      \"description\": \"Custom chatbots for websites and WhatsApp\",\n      \"isActive\": true,\n      \"id\": 1,\n      \"working_hours\": {\n        \"monday\": { \"start\": \"09:00\", \"end\": \"17:00\", \"active\": true },\n        \"tuesday\": { \"start\": \"09:00\", \"end\": \"17:00\", \"active\": true },\n        \"wednesday\": { \"start\": \"09:00\", \"end\": \"17:00\", \"active\": true },\n        \"thursday\": { \"start\": \"09:00\", \"end\": \"17:00\", \"active\": true },\n        \"friday\": { \"start\": \"09:00\", \"end\": \"14:00\", \"active\": true },\n        \"saturday\": { \"start\": \"\", \"end\": \"\", \"active\": false },\n        \"sunday\": { \"start\": \"\", \"end\": \"\", \"active\": false }\n      }\n    },\n    {\n      \"serviceName\": \"WhatsApp Integration\",\n      \"description\": \"Connect your business to WhatsApp Business API\",\n      \"isActive\": true,\n      \"id\": 2,\n      \"working_hours\": null\n    }\n  ],\n  \"chat_tone\": \"friendly\",\n  \"system_prompt\": \"You are a helpful assistant for our business.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get Business Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service",
+            "description": "Fetch all business settings for the logged-in user."
+          }
+        },
+        {
+          "name": "Get System Prompt",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/system-prompt",
+            "description": "Get the current system prompt."
+          }
+        },
+        {
+          "name": "Update System Prompt",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/system-prompt",
+            "description": "Replace the system prompt text.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"You are Alex, a friendly consultant who helps users discover our AI chatbot services. Be warm, concise, and helpful.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Delete System Prompt",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/system-prompt",
+            "description": "Remove the system prompt."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Q&A Knowledge Base",
+      "description": "Manage Q&A pairs used as the chatbot's knowledge base. All routes require a Bearer token.",
+      "item": [
+        {
+          "name": "Create Q&A",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/qna",
+            "description": "Add a single Q&A pair to the knowledge base.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What services do you offer?\",\n  \"answer\": \"We offer custom AI chatbot development, WhatsApp integration, and multi-platform chat solutions.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Get All Q&A",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/qna",
+            "description": "Fetch all Q&A pairs for the logged-in user, sorted by newest first."
+          }
+        },
+        {
+          "name": "Search Q&A",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/business-service/qna/search?q=chatbot",
+              "host": ["{{baseUrl}}"],
+              "path": ["business-service", "qna", "search"],
+              "query": [{ "key": "q", "value": "chatbot" }]
+            },
+            "description": "Search Q&A pairs by keyword (matches question or answer)."
+          }
+        },
+        {
+          "name": "Get Q&A by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/qna/:qna_id",
+            "description": "Fetch a single Q&A pair by its MongoDB ObjectId.",
+            "variable": [
+              { "key": "qna_id", "value": "replace_with_actual_id" }
+            ]
+          }
+        },
+        {
+          "name": "Update Q&A",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/qna/:qna_id",
+            "description": "Update an existing Q&A pair.",
+            "variable": [
+              { "key": "qna_id", "value": "replace_with_actual_id" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"What services do you offer?\",\n  \"answer\": \"We specialize in AI chatbots, WhatsApp Business API integration, and appointment automation.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Delete Q&A by ID",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/qna/:qna_id",
+            "description": "Delete a single Q&A pair.",
+            "variable": [
+              { "key": "qna_id", "value": "replace_with_actual_id" }
+            ]
+          }
+        },
+        {
+          "name": "Delete All Q&A",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/qna",
+            "description": "Delete all Q&A pairs for the logged-in user."
+          }
+        },
+        {
+          "name": "Bulk Create Q&A",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/business-service/qna/bulk",
+            "description": "Add multiple Q&A pairs at once (max 100 per request).",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"question\": \"What is your pricing?\",\n    \"answer\": \"Our pricing starts at $500 for basic chatbot integration. Contact us for a custom quote.\"\n  },\n  {\n    \"question\": \"How long does implementation take?\",\n    \"answer\": \"Typically 1-2 weeks depending on complexity.\"\n  },\n  {\n    \"question\": \"Do you support Arabic?\",\n    \"answer\": \"Yes, we support Arabic, Hebrew, English, and many other languages.\"\n  }\n]",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Services",
+      "description": "Manage individual services within business settings.",
+      "item": [
+        {
+          "name": "Get Service by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/service/:service_id",
+            "description": "Fetch a single service by its numeric ID. No auth required.",
+            "variable": [
+              { "key": "service_id", "value": "1" }
+            ]
+          }
+        },
+        {
+          "name": "Update Service",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/service/:service_id",
+            "description": "Update fields of a specific service. All fields are optional (only send what you want to change).",
+            "variable": [
+              { "key": "service_id", "value": "1" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceName\": \"AI Chatbot Development (Updated)\",\n  \"description\": \"Custom AI chatbots for websites, WhatsApp, and mobile apps\",\n  \"isActive\": true,\n  \"working_hours\": {\n    \"saturday\": { \"start\": \"10:00\", \"end\": \"14:00\", \"active\": true }\n  }\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Delete Service",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/service/:service_id",
+            "description": "Remove a service by its numeric ID.",
+            "variable": [
+              { "key": "service_id", "value": "1" }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "description": "Customer-facing chat endpoints. No auth needed — uses user_id to identify which business the customer is chatting with.",
+      "item": [
+        {
+          "name": "Start Chat Session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.session_id) {",
+                  "  pm.collectionVariables.set('session_id', res.session_id);",
+                  "  console.log('Session ID saved:', res.session_id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/chat/start",
+            "description": "Start a new chat session for a customer. The `user_id` is the MongoDB ObjectId of the business owner. Session ID is auto-saved to the `session_id` collection variable.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone_number\": \"923001234567\",\n  \"user_id\": \"replace_with_business_owner_id\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/chat",
+            "description": "Send a message in an active session. Requires `session_id` from the Start Chat response and the business owner's `user_id`. The AI replies based on the business configuration, Q&A knowledge base, and services.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"replace_with_business_owner_id\",\n  \"query\": \"What services do you offer?\",\n  \"session_id\": \"{{session_id}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Send Message - Schedule Meeting",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/chat",
+            "description": "Example of a scheduling request. The bot will detect scheduling keywords and trigger Google Calendar event creation.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"replace_with_business_owner_id\",\n  \"query\": \"I'd like to schedule a meeting tomorrow at 3pm to discuss chatbot integration. My email is john@example.com\",\n  \"session_id\": \"{{session_id}}\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "WhatsApp (Twilio)",
+      "item": [
+        {
+          "name": "WhatsApp Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/x-www-form-urlencoded" }
+            ],
+            "url": "{{baseUrl}}/twilio/whatsapp",
+            "description": "Twilio sends POST requests here when a WhatsApp message is received. Configure this URL in your Twilio sandbox: https://console.twilio.com → Messaging → Sandbox → 'When a message comes in'.\n\nFor manual testing, simulate a Twilio payload below. The `To` number must match a registered user's phone in the database.",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "Body", "value": "What services do you offer?" },
+                { "key": "From", "value": "whatsapp:+14155238886" },
+                { "key": "To", "value": "whatsapp:+923001234567" }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
